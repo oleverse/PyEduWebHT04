@@ -1,3 +1,6 @@
+import datetime
+import json
+import logging
 import mimetypes
 import os.path
 import socket
@@ -15,9 +18,24 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
         file_name, status = self.resolve_route(request_url.path)
         self.send_file(file_name, status)
 
+    def do_POST(self):
+        data = self.rfile.read(int(self.headers['Content-Length']))
+
+        self.send_over_udp(data)
+
+        self.send_response(302)
+        self.send_header('Location', self.path)
+        self.end_headers()
+
     @staticmethod
     def has_extension(file_path):
         return file_path.split('.')[-1].isalpha()
+
+    @staticmethod
+    def send_over_udp(data):
+        sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        sock.sendto(data, ('localhost', 5000))
+        sock.close()
 
     def get_route_path(self, route_path):
         if route_path == '/':
@@ -48,8 +66,17 @@ class CustomHTTPRequestHandler(BaseHTTPRequestHandler):
 
 class CustomUDPHandler(BaseRequestHandler):
     def handle(self) -> None:
-        data = self.request[0].strip()
-        print(f"Received data: {data} from: {self.client_address[0]}")
+        data = self.request[0].strip().decode()
+        data_parse = urllib.parse.unquote_plus(data)
+        data_dict = {key: value for key, value in [el.split('=') for el in data_parse.split('&')]}
+        logger.debug(f"[UDP Server] Received data: {data_dict} from: {self.client_address[0]}:{self.client_address[1]}")
+        self.save_data(data_dict)
+
+    @staticmethod
+    def save_data(data_dict):
+        os.makedirs('storage', exist_ok=True)
+        with open('storage/data.json', 'a') as data_file:
+            json.dump({str(datetime.datetime.now()): data_dict}, data_file)
 
 
 def run_web_server(server_class=HTTPServer, handler_class=CustomHTTPRequestHandler):
@@ -71,8 +98,6 @@ def run_udp_server(server_class=UDPServer, handler_class=CustomUDPHandler):
 
 
 def run():
-    global is_udp_server_active
-
     web_server, web_server_thread = run_web_server()
     udp_server, udp_server_thread = run_udp_server()
 
@@ -80,11 +105,14 @@ def run():
         for thread in web_server_thread, udp_server_thread:
             thread.join()
     except KeyboardInterrupt:
-        print("Trying to stop all threads...")
+        logger.debug("Trying to stop all threads...")
         udp_server.shutdown()
         web_server.shutdown()
 
 
 if __name__ == "__main__":
-    is_udp_server_active = True
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    logger.addHandler(logging.StreamHandler())
+
     run()

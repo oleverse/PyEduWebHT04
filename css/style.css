@@ -1,0 +1,10 @@
+* {margin: 0; padding: 0; text-decoration: none; font-family: Roboto, Arial, sans;}
+div.main_content {max-width: 800px; margin: 0 auto;}
+
+form div {margin: 10px 0;}
+form div label {min-width: 150px; display: inline-block; vertical-align: top;}
+form div :not(button):last-child {min-width: 500px; width: 100%; max-width: 796px;}
+form div button {float: right; padding: 5px; font-size: 18px;}
+form div button[type="reset"] {margin: 0 0 0 10px;}
+form div button[type="submit"] {margin: 0 10px 0 0;}
+form div textarea {min-height: 250px; max-height: 250px;}

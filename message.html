@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <title>Надіслати повідомлення</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div>
+        <img alt="School logo"
+             src="https://s3.eu-north-1.amazonaws.com/lms.goit.files/0618d8e0-2652-3e30-ae44-fd6ff17d55a1.png">
+    </div>
+    <div class="main_content">
+        <form action="/message" method="POST">
+            <h2>Щоб надіслати повідомлення, заповніть форму:</h2>
+            <div>
+                <label>Ім'я:</label>
+                <input type="text" name="username" />
+            </div>
+            <div>
+                <label>Повідомлення:</label>
+                <textarea name="message"></textarea>
+            </div>
+            <div>
+                <button type="reset">Очистити</button>
+                <button type="submit">Відправити</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
