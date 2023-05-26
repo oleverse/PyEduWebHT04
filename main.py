@@ -75,8 +75,20 @@ class CustomUDPHandler(BaseRequestHandler):
     @staticmethod
     def save_data(data_dict):
         os.makedirs('storage', exist_ok=True)
-        with open('storage/data.json', 'a') as data_file:
-            json.dump({str(datetime.datetime.now()): data_dict}, data_file)
+        data_file_path = 'storage/data.json'
+        data = {}
+
+        try:
+            if os.path.isfile(data_file_path):
+                with open(data_file_path) as data_file:
+                    data = json.load(data_file)
+        except json.decoder.JSONDecodeError:
+            logger.debug("Json decoder error!")
+
+        data[str(datetime.datetime.now())] = data_dict
+
+        with open(data_file_path, 'w') as data_file:
+            json.dump(data, data_file, ensure_ascii=False, indent=4)
 
 
 def run_web_server(server_class=HTTPServer, handler_class=CustomHTTPRequestHandler):
@@ -107,7 +119,9 @@ def run():
     except KeyboardInterrupt:
         logger.debug("Trying to stop all threads...")
         udp_server.shutdown()
+        logger.debug("UDP server has been stopped.")
         web_server.shutdown()
+        logger.debug("Web server has been stopped.")
 
 
 if __name__ == "__main__":
